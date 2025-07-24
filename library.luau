@@ -33,6 +33,54 @@ function Library.Events.Communications.NewMessage:Invoke(args : {})
 	end
 end
 
+--//AI Response Generation
+local HttpService = game:GetService("HttpService") --literally only used for json encoding and decoding
+
+--d1 gatekeeper
+local API_KEY = _G.API_KEY
+local URL = _G.API_URL
+local MODEL = _G.MODEL
+
+assert(API_KEY, "MISSING API KEY")
+assert(URL, "MISSING URL")
+assert(MODEL, "MISSING MODEL")
+
+function Library.Communications:Generate(prompt) : string
+	local data = {
+		model = "llama3-70b-8192",
+		messages = {
+			{
+				role = "user",
+				content = prompt,
+			}
+		},
+		temperature = 0.7,
+	}
+	
+	local response = request({
+		Url = URL,
+		Method = "POST",
+		Headers = {
+			["Authorization"] = "Bearer " .. API_KEY,
+			["Content-Type"] = "application/json",
+		},
+		Body = HttpService:JSONEncode(data),
+	})
+	
+	if response.Success then
+		local result = HttpService:JSONDecode(response.Body)
+		
+		print(result.choices[1].message.content)
+		
+		return result.choices[1].message.content
+	else
+		warn("Request failed:", response.StatusCode, response.StatusMessage)
+	end
+
+	return nil
+end
+
+
 
 --//Communication
 
@@ -82,23 +130,6 @@ Library.Communications.ProcessMessage = function(author : Player, text : string)
 		end
 	end
 end
-
-Library.Communications.CreateChatAction("follow me", function(author : Player)
-	print("following")
-	Library.Communications.SendMessage("Following "..author.Name)
-	
-	local hum = author.Character:FindFirstChildOfClass("Humanoid")
-	
-	if hum then
-		if hum.Health ~= 0 then
-			Humanoid:MoveTo(hum.RootPart.Position)
-			
-			Humanoid.MoveToFinished:Wait()
-			
-			Library.Communications.SendMessage("Finished following "..author.Name)
-		end
-	end
-end)
 
 Library.Events.Communications.NewMessage:Connect(function(author : Player, text : string)
 	Library.Communications.ProcessMessage(author, text)
