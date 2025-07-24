@@ -106,3 +106,5 @@ end
 
 RunService.RenderStepped:Connect(Library.Update)
 _G.SciphideLib = Library
+
+return Library
