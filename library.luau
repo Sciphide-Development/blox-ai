@@ -83,6 +83,8 @@ Library.Communications.ProcessMessage = function(author : Player, text : string)
 	end
 end
 
+--[[
+
 Library.CreateChatAction("follow me", function(author : Player)
 	print("following")
 	Library.SendMessage("Following "..author.Name)
@@ -95,6 +97,7 @@ Library.CreateChatAction("follow me", function(author : Player)
 		end
 	end
 end)
+]]--
 
 Library.Events.NewMessage:Connect(function(author : Player, text : string)
 	Library.ProcessMessage(author, text)
