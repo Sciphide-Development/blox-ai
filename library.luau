@@ -1,3 +1,5 @@
+print("Library loading")
+
 local Player = game:GetService("Players").LocalPlayer
 local Character = Player.Character or Player.CharacterAdded:Wait()
 local Humanoid : Humanoid = Character:WaitForChild("Humanoid")
@@ -68,6 +70,8 @@ end
 Library.Communications.CreateChatAction = function(cmd, action)
 	Library.Communications.ChatActions[cmd] = action
 end
+
+print("pre-error")
 
 Library.Communications.ProcessMessage = function(author : Player, text : string)
 	local beginsPrefix = string.find(text,"^hey sciphide")
