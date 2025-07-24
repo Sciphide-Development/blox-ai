@@ -45,15 +45,14 @@ assert(API_KEY, "MISSING API KEY")
 assert(URL, "MISSING URL")
 assert(MODEL, "MISSING MODEL")
 
+local Conversation = {}
+
 function Library.Communications:Generate(prompt) : string
+	table.insert(Conversation, {role = "user", content=prompt})
+	
 	local data = {
 		model = "llama3-70b-8192",
-		messages = {
-			{
-				role = "user",
-				content = prompt,
-			}
-		},
+		messages = Conversation,
 		temperature = 0.7,
 	}
 	
@@ -71,6 +70,8 @@ function Library.Communications:Generate(prompt) : string
 		local result = HttpService:JSONDecode(response.Body)
 		
 		print(result.choices[1].message.content)
+		
+		table.insert(Conversation, {role="assistant", content=result.choices[1].message.content})
 		
 		return result.choices[1].message.content
 	else
@@ -94,7 +95,7 @@ do
 		local author : Player = msg.TextSource and game:GetService("Players"):GetPlayerByUserId(msg.TextSource.UserId)
 		
 		if not author or msg.Status ~= Enum.TextChatMessageStatus.Success then return end
-		
+		if author == Player then return end
 		
 		
 		print(msg.Status)
@@ -123,10 +124,18 @@ Library.Communications.ProcessMessage = function(author : Player, text : string)
 	if beginsPrefix then
 		local mc, ahha = string.gsub(text, "^hey sciphide", "")
 		
+		local wasCommand = false
+		
 		for cmd, action in Library.Communications.ChatActions do
 			if string.find(mc, cmd) then
 				action(author)
+				wasCommand = true
+				break
 			end
+		end
+		
+		if not wasCommand then
+			Library.Communications:Generate(author.Name..": "..mc)
 		end
 	end
 end
