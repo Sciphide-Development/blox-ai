@@ -1,5 +1,3 @@
-print("Library loading")
-
 local Player = game:GetService("Players").LocalPlayer
 local Character = Player.Character or Player.CharacterAdded:Wait()
 local Humanoid : Humanoid = Character:WaitForChild("Humanoid")
@@ -54,7 +52,7 @@ do
 		print(msg.Status)
 		
 		table.insert(Library.Communications.Messages, {Author = author, Text = msg.Text})
-		Library.Events.NewMessage:Invoke({author, msg.Text})
+		Library.Events.Communications.NewMessage:Invoke({author, msg.Text})
 	end
 end
 
@@ -71,15 +69,13 @@ Library.Communications.CreateChatAction = function(cmd, action)
 	Library.Communications.ChatActions[cmd] = action
 end
 
-print("pre-error")
-
 Library.Communications.ProcessMessage = function(author : Player, text : string)
 	local beginsPrefix = string.find(text,"^hey sciphide")
 	
 	if beginsPrefix then
 		local mc, ahha = string.gsub(text, "^hey sciphide", "")
 		
-		for cmd, action in Library.ChatActions do
+		for cmd, action in Library.Communications.ChatActions do
 			if string.find(mc, cmd) then
 				action(author)
 			end
@@ -87,24 +83,25 @@ Library.Communications.ProcessMessage = function(author : Player, text : string)
 	end
 end
 
---[[
-
-Library.CreateChatAction("follow me", function(author : Player)
+Library.Communications.CreateChatAction("follow me", function(author : Player)
 	print("following")
-	Library.SendMessage("Following "..author.Name)
+	Library.Communications.SendMessage("Following "..author.Name)
 	
 	local hum = author.Character:FindFirstChildOfClass("Humanoid")
 	
 	if hum then
 		if hum.Health ~= 0 then
 			Humanoid:MoveTo(hum.RootPart.Position)
+			
+			Humanoid.MoveToFinished:Wait()
+			
+			Library.Communications.SendMessage("Finished following "..author.Name)
 		end
 	end
 end)
-]]--
 
-Library.Events.NewMessage:Connect(function(author : Player, text : string)
-	Library.ProcessMessage(author, text)
+Library.Events.Communications.NewMessage:Connect(function(author : Player, text : string)
+	Library.Communications.ProcessMessage(author, text)
 end)
 
 Library.Update = function(dt)
@@ -113,3 +110,5 @@ end
 
 RunService.RenderStepped:Connect(Library.Update)
 _G.SciphideLib = Library
+
+return Library
